@@ -8,6 +8,10 @@ export const PERMISSION_API_PORT = 9226;
 
 export const QUESTION_API_PORT = 9227;
 
+export const AZURE_FOUNDRY_PROXY_PORT = 9230;
+
+export const MOONSHOT_PROXY_PORT = 9229;
+
 export const PERMISSION_REQUEST_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 
 // Logging configuration constants

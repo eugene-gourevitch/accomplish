@@ -2,7 +2,7 @@ import http from 'http';
 import https from 'https';
 import { URL } from 'url';
 
-const AZURE_FOUNDRY_PROXY_PORT = 9228;
+import { AZURE_FOUNDRY_PROXY_PORT } from '../../common/constants.js';
 const MAX_REQUEST_SIZE = 10 * 1024 * 1024;
 
 let server: http.Server | null = null;

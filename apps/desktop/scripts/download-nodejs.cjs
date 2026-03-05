@@ -165,7 +165,20 @@ async function main() {
     fs.mkdirSync(tempDir, { recursive: true });
   }
 
-  for (const platform of PLATFORMS) {
+  // Filter to only the requested platform if --platform=<target> is specified
+  const platformArg = process.argv.find((arg) => arg.startsWith('--platform='));
+  const requestedPlatform = platformArg ? platformArg.split('=')[1] : null;
+  const platformsToDownload = requestedPlatform
+    ? PLATFORMS.filter((p) => p.name === requestedPlatform)
+    : PLATFORMS;
+
+  if (platformsToDownload.length === 0) {
+    console.error(`Unknown platform: ${requestedPlatform}`);
+    console.error(`Available: ${PLATFORMS.map((p) => p.name).join(', ')}`);
+    process.exit(1);
+  }
+
+  for (const platform of platformsToDownload) {
     console.log(`\nProcessing ${platform.name}...`);
 
     const archivePath = path.join(tempDir, platform.file);

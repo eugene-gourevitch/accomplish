@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { ipcMain, BrowserWindow, shell, dialog, nativeTheme } from 'electron';
+import { app, ipcMain, BrowserWindow, shell, dialog, nativeTheme } from 'electron';
 import type { IpcMainInvokeEvent } from 'electron';
 import { URL } from 'url';
 import fs from 'fs';
@@ -115,10 +115,11 @@ function assertTrustedWindow(window: BrowserWindow | null): BrowserWindow {
 }
 
 function isE2ESkipAuthEnabled(): boolean {
+  const isDev = !app.isPackaged;
   return (
     (global as Record<string, unknown>).E2E_SKIP_AUTH === true ||
     process.argv.includes('--e2e-skip-auth') ||
-    process.env.E2E_SKIP_AUTH === '1'
+    (isDev && process.env.E2E_SKIP_AUTH === '1')
   );
 }
 

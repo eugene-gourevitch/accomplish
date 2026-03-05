@@ -1,5 +1,19 @@
+import path from 'path';
+import os from 'os';
 import type { TaskConfig } from '../common/types/task.js';
 import { sanitizeString } from './sanitize.js';
+
+/**
+ * Checks that a working directory is within allowed base paths
+ * (user home directory or OS temp directory) to prevent path traversal.
+ */
+function isAllowedWorkingDirectory(dir: string): boolean {
+  const resolved = path.resolve(dir);
+  const homeDir = os.homedir();
+  const tempDir = os.tmpdir();
+  const allowed = [homeDir, tempDir];
+  return allowed.some((base) => resolved === base || resolved.startsWith(base + path.sep));
+}
 
 /**
  * Validates and sanitizes a TaskConfig object.
@@ -20,6 +34,11 @@ export function validateTaskConfig(config: TaskConfig): TaskConfig {
   }
   if (config.workingDirectory) {
     validated.workingDirectory = sanitizeString(config.workingDirectory, 'workingDirectory', 1024);
+    if (!isAllowedWorkingDirectory(validated.workingDirectory)) {
+      throw new Error(
+        `workingDirectory must be within the user home or temp directory, got: ${validated.workingDirectory}`,
+      );
+    }
   }
   if (Array.isArray(config.allowedTools)) {
     validated.allowedTools = config.allowedTools

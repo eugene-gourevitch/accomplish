@@ -2,7 +2,7 @@ import http from 'http';
 import https from 'https';
 import { URL } from 'url';
 
-const MOONSHOT_PROXY_PORT = 9229;
+import { MOONSHOT_PROXY_PORT } from '../../common/constants.js';
 const MAX_REQUEST_SIZE = 10 * 1024 * 1024;
 const DEBUG = process.env.DEBUG_MOONSHOT_PROXY === '1';
 

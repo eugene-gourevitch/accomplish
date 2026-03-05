@@ -40,7 +40,10 @@ import { skillsManager } from './skills';
 if (process.argv.includes('--e2e-skip-auth')) {
   (global as Record<string, unknown>).E2E_SKIP_AUTH = true;
 }
-if (process.argv.includes('--e2e-mock-tasks') || process.env.E2E_MOCK_TASK_EVENTS === '1') {
+if (
+  process.argv.includes('--e2e-mock-tasks') ||
+  (!app.isPackaged && process.env.E2E_MOCK_TASK_EVENTS === '1')
+) {
   (global as Record<string, unknown>).E2E_MOCK_TASK_EVENTS = true;
 }
 
@@ -389,6 +392,6 @@ ipcMain.handle('app:platform', () => {
 ipcMain.handle('app:is-e2e-mode', () => {
   return (
     (global as Record<string, unknown>).E2E_MOCK_TASK_EVENTS === true ||
-    process.env.E2E_MOCK_TASK_EVENTS === '1'
+    (!app.isPackaged && process.env.E2E_MOCK_TASK_EVENTS === '1')
   );
 });

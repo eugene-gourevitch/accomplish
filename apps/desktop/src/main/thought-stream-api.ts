@@ -20,6 +20,8 @@ import {
 export { THOUGHT_STREAM_PORT };
 export type { ThoughtEvent, CheckpointEvent };
 
+const MAX_BODY_SIZE = 1024 * 1024; // 1 MB
+
 // Store reference to main window
 let mainWindow: BrowserWindow | null = null;
 
@@ -52,14 +54,9 @@ export function unregisterActiveTask(taskId: string): void {
  */
 export function startThoughtStreamServer(): http.Server {
   const server = http.createServer(async (req, res) => {
-    // CORS headers for local requests
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-    // Handle preflight
+    // No CORS headers — this server is called by local Node processes only
     if (req.method === 'OPTIONS') {
-      res.writeHead(200);
+      res.writeHead(204);
       res.end();
       return;
     }
@@ -71,10 +68,20 @@ export function startThoughtStreamServer(): http.Server {
       return;
     }
 
-    // Parse request body
+    // Parse request body with size limit
     let body = '';
+    let tooLarge = false;
     for await (const chunk of req) {
       body += chunk;
+      if (body.length > MAX_BODY_SIZE) {
+        tooLarge = true;
+        break;
+      }
+    }
+    if (tooLarge) {
+      res.writeHead(413, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Request too large' }));
+      return;
     }
 
     let data: Record<string, unknown>;

@@ -22,6 +22,8 @@ import {
 
 export { PERMISSION_API_PORT, QUESTION_API_PORT, isFilePermissionRequest, isQuestionRequest };
 
+const MAX_BODY_SIZE = 1024 * 1024; // 1 MB
+
 // Singleton permission request handler
 const permissionHandler: PermissionHandlerAPI = createPermissionHandler();
 
@@ -58,14 +60,9 @@ export function resolveQuestion(requestId: string, response: QuestionResponseDat
  */
 export function startPermissionApiServer(): http.Server {
   const server = http.createServer(async (req, res) => {
-    // CORS headers for local requests
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-    // Handle preflight
+    // No CORS headers — these servers are called by local Node processes only
     if (req.method === 'OPTIONS') {
-      res.writeHead(200);
+      res.writeHead(204);
       res.end();
       return;
     }
@@ -77,10 +74,20 @@ export function startPermissionApiServer(): http.Server {
       return;
     }
 
-    // Parse request body
+    // Parse request body with size limit
     let body = '';
+    let tooLarge = false;
     for await (const chunk of req) {
       body += chunk;
+      if (body.length > MAX_BODY_SIZE) {
+        tooLarge = true;
+        break;
+      }
+    }
+    if (tooLarge) {
+      res.writeHead(413, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Request too large' }));
+      return;
     }
 
     let data: FilePermissionRequestData;
@@ -157,14 +164,9 @@ export function startPermissionApiServer(): http.Server {
  */
 export function startQuestionApiServer(): http.Server {
   const server = http.createServer(async (req, res) => {
-    // CORS headers for local requests
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-    // Handle preflight
+    // No CORS headers — these servers are called by local Node processes only
     if (req.method === 'OPTIONS') {
-      res.writeHead(200);
+      res.writeHead(204);
       res.end();
       return;
     }
@@ -176,10 +178,20 @@ export function startQuestionApiServer(): http.Server {
       return;
     }
 
-    // Parse request body
+    // Parse request body with size limit
     let body = '';
+    let tooLarge = false;
     for await (const chunk of req) {
       body += chunk;
+      if (body.length > MAX_BODY_SIZE) {
+        tooLarge = true;
+        break;
+      }
+    }
+    if (tooLarge) {
+      res.writeHead(413, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Request too large' }));
+      return;
     }
 
     let data: QuestionRequestData;
